@@ -34,7 +34,7 @@ const promptUser = () => {
             addEmployee();
         }
         if (answers.prompt === "Update Employee Role") {
-            updateEmployee();
+            updateEmployeeRole();
         }
         if (answers.prompt === "View All Roles") {
             showRoles();
@@ -67,14 +67,119 @@ showEmployees = () => {
 
 // function to add emp
 addEmployee = () => {
-    
-    
+    // find all roles for emp to be assigned to
+    const roleArray = [];
+    db.query("SELECT * FROM role", (err, result) => {
+    if (err) throw err;
+
+    result.forEach(role => {
+      let roleObj = {
+        name: role.title,
+        value: role.id
+      }
+      roleArray.push(roleObj);
+    });
+
+    // find all managers for emp to be assigned to or null
+    const managerArray = [{
+        name: 'None',
+        value: null
+    }];
+    db.query("SELECT * FROM employee", (err, result) => {
+    if (err) throw err;
+
+    result.forEach(employee => {
+      let employeeObj = {
+        name: employee.first_name + " " + employee.last_name,
+        value: employee.id
+      }
+      managerArray.push(employeeObj);
+    });
+
+    inquirer.prompt([{
+        type: 'input',
+        name: 'firstName',
+        message: 'What is the employees first name?'
+    },
+    {
+        type: 'input',
+        name: 'lastName',
+        message: 'What is the employees last name?'
+    },
+    {
+        type: 'list',
+        name: 'empRole',
+        message: 'What is the employees role?',
+        choices: roleArray
+    },
+    {
+        type: 'list',
+        name: 'empManager',
+        message: 'Who is the employees manager?',
+        choices: managerArray
+    }
+    ])
+    .then((answers) => {
+        db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`, [answers.firstName, answers.lastName, answers.empRole, answers.empManager], (err, result) => {
+            if (err) throw err;
+            console.log(`Added ${answers.firstName} ${answers.lastName} to the database.\n`);
+            promptUser();
+      });
+    });
+    });
+    });
 };
 
 // function to update emp
-updateEmployee = () => {
-    
-    
+updateEmployeeRole = () => {
+    // find all emps to choose from
+    const employeeArray = [];
+    db.query("SELECT * FROM employee", (err, result) => {
+    if (err) throw err;
+
+    result.forEach(employee => {
+        let employeeObj = {
+            name: employee.first_name + " " + employee.last_name,
+            value: employee.id
+        }
+    employeeArray.push(employeeObj);
+    });
+
+    // find all roles for emp to be assigned to
+    const roleArray = [];
+    db.query("SELECT * FROM role", (err, result) => {
+    if (err) throw err;
+
+    result.forEach(role => {
+        let roleObj = {
+            name: role.title,
+            value: role.id
+    }
+    roleArray.push(roleObj);
+    });
+
+    inquirer.prompt([{
+        type: 'list',
+        name: 'employee',
+        message: 'Which employee do you want to update?',
+        choices: employeeArray
+    },
+    {
+        type: 'list',
+        name: 'empRole',
+        message: 'What is the employees new role?',
+        choices: roleArray
+    }
+    ])
+    .then((answers) => {
+        db.query(`UPDATE employee SET role_id=(?) WHERE id=(?)`, [answers.empRole, answers.employee], (err, result) => {
+            if (err) throw err;
+            console.log(`Updated employee role.\n`);
+            promptUser();
+        });
+    });
+    });
+    });
 };
 
 // function to show all roles
@@ -89,8 +194,45 @@ showRoles = () => {
 
 // function to add a role
 addRole = () => {
-    
-    
+    // finds all departments for each department id
+    const departmentsArray = [];
+    db.query("SELECT * FROM department", (err, result) => {
+    if (err) throw err;
+
+    result.forEach(department => {
+      let departmentObj = {
+        name: department.name,
+        value: department.id
+      }
+      departmentsArray.push(departmentObj);
+    });
+
+    inquirer.prompt([{
+        type: 'input',
+        name: 'roleName',
+        message: 'What is the new role name?'
+    },
+    {
+        type: 'input',
+        name: 'roleSalary',
+        message: 'What is the salary of the role?'
+    },
+    {
+        type: 'list',
+        name: 'roleDepartment',
+        message: 'What department does this role belong to?',
+        choices: departmentsArray
+    }
+    ])
+    .then((answers) => {
+        db.query(`INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`, [answers.roleName, answers.roleSalary, answers.roleDepartment], (err, result) => {
+            if (err) throw err;
+            console.log(`Added ${answers.roleName} to the database.\n`);
+            promptUser();
+      });
+    })
+
+    });
 };
 
 // function to show all departments
@@ -113,10 +255,8 @@ addDepartment = () => {
     .then((answer) => {
         db.query(`INSERT INTO department (name) VALUES (?)`, [answer.addDepartment], (err, result) => {
             if (err) throw err;
-            console.log(`Added ${answer.addDepartment} to the database.`);
-            showDepartments();
+            console.log(`Added ${answer.addDepartment} to the database.\n`);
             promptUser();
         });
     });
-    
 };
