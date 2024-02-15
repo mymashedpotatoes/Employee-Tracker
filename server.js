@@ -105,6 +105,18 @@ showDepartments = () => {
 
 // function to add department
 addDepartment = () => {
-    
+    inquirer.prompt([{
+        type: 'input',
+        name: 'addDepartment',
+        message: 'What is the new department name?'
+    }])
+    .then((answer) => {
+        db.query(`INSERT INTO department (name) VALUES (?)`, [answer.addDepartment], (err, result) => {
+            if (err) throw err;
+            console.log(`Added ${answer.addDepartment} to the database.`);
+            showDepartments();
+            promptUser();
+        });
+    });
     
 };
