@@ -7,6 +7,8 @@
   ## Description
   This is a command-line application that manages a comapanys employee database using node.js, inquirer, and MySQL.
 
+  Link to Walk Through : https://drive.google.com/file/d/1Ml8zH_1CsGRQh03FfJC7zjwGw5HLkekg/view
+
   ## Table of Contents
   - [Installation](#install)
   - [Usage](#usage)
